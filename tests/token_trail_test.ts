@@ -26,4 +26,20 @@ Clarinet.test({
   }
 });
 
-[... rest of the test file with new test cases ...]
+Clarinet.test({
+  name: "Prevents self-transfers",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const wallet1 = accounts.get('wallet_1')!;
+    
+    let block = chain.mineBlock([
+      Tx.contractCall('token_trail', 'record-transfer', [
+        types.principal(wallet1.address),
+        types.principal(wallet1.address),
+        types.uint(1000),
+        types.none()
+      ], wallet1.address)
+    ]);
+    
+    block.receipts[0].result.expectErr(102); // ERR-SELF-TRANSFER
+  }
+});
